@@ -419,35 +419,78 @@ function loadSavedPhoto() {
   }
 }
 
+function isImageFile(file) {
+  if (!file) return false;
+  return file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp)$/i.test(file.name || '');
+}
+
+function useSelectedPhotoFile(file) {
+  if (!isImageFile(file)) {
+    hint.textContent = 'Please choose a JPG, PNG, or WEBP image file.';
+    return;
+  }
+
+  const blobUrl = URL.createObjectURL(file);
+  const testImg = new Image();
+
+  testImg.onload = () => {
+    showHeroImage(blobUrl);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      if (!dataUrl) return;
+      try {
+        localStorage.setItem('denanHeroPhoto', dataUrl);
+      } catch (_) {
+        hint.textContent = 'Photo loaded. If it does not save after restart, use a smaller image.';
+      }
+    };
+    reader.onerror = () => {
+      hint.textContent = 'Photo loaded, but save failed. It will stay for this session.';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  testImg.onerror = () => {
+    URL.revokeObjectURL(blobUrl);
+    hint.textContent = 'That image could not be opened. Try another JPG/PNG file.';
+  };
+
+  testImg.src = blobUrl;
+}
+
 function attachPhotoPicker() {
   heroPhoto.addEventListener('error', showHeroFallback);
 
   photoInput.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || '');
-      if (!dataUrl) return;
-
-      // Always show the selected image immediately (even if storage quota is full).
-      showHeroImage(dataUrl);
-
-      // Save for next launch when possible; large photos may exceed localStorage limits.
-      try {
-        localStorage.setItem('denanHeroPhoto', dataUrl);
-      } catch (_) {
-        hint.textContent = 'Photo loaded for this session. If it does not save, use a smaller image file.';
-      }
-    };
-    reader.onerror = () => {
-      hint.textContent = 'Could not read that image file. Please try another JPG/PNG.';
-    };
-    reader.readAsDataURL(file);
-
-    // Allow picking the same file again later.
+    useSelectedPhotoFile(file);
     photoInput.value = '';
+  });
+
+  window.addEventListener('paste', (e) => {
+    const files = Array.from(e.clipboardData?.files || []);
+    const imgFile = files.find(isImageFile);
+    if (imgFile) {
+      useSelectedPhotoFile(imgFile);
+    }
+  });
+
+  const heroWrap = document.querySelector('.hero-photo-wrap');
+  heroWrap?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    heroWrap.style.outline = '3px dashed #6aa1ee';
+  });
+  heroWrap?.addEventListener('dragleave', () => {
+    heroWrap.style.outline = '';
+  });
+  heroWrap?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    heroWrap.style.outline = '';
+    const file = Array.from(e.dataTransfer?.files || []).find(isImageFile);
+    if (file) useSelectedPhotoFile(file);
   });
 }
 

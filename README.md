@@ -26,8 +26,10 @@ Use this exact flow:
 
 ## Add Denan's photo to the hero banner
 Two easy options:
-1. **In-game upload (recommended):** click **Use your photo** on the banner and choose the picture.
-2. **File method:** place your photo in the project root and name it `denan-banner.jpg`.
+1. **In-game upload (recommended):** click **Use your photo** on the banner and choose the picture (JPG/PNG/WEBP).
+2. **Paste method:** click the page and press **Ctrl+V** after copying an image.
+3. **Drag-drop method:** drag an image file directly onto the hero photo area.
+4. **File method:** place your photo in the project root and name it `denan-banner.jpg`.
 
 The chosen image is saved in the browser so it appears next time too.
 
