@@ -10,6 +10,10 @@ const nextBtn = document.getElementById('nextBtn');
 const hint = document.getElementById('hint');
 const stars = document.getElementById('stars');
 
+const heroPhoto = document.getElementById('heroPhoto');
+const heroFallback = document.getElementById('heroFallback');
+const photoInput = document.getElementById('photoInput');
+
 const SHAPES = ['circle', 'triangle', 'square', 'heart', 'star'];
 const STORY_WORDS = [
   'Dragon', 'moon', 'Rocket', 'forest', 'Treasure', 'castle', 'Wizard', 'river', 'Pirate', 'planet',
@@ -394,9 +398,44 @@ function attachControls() {
   modeSelect.addEventListener('change', refreshChallenge);
 }
 
+
+function showHeroFallback() {
+  heroPhoto.hidden = true;
+  heroFallback.hidden = false;
+}
+
+function showHeroImage(src) {
+  heroPhoto.hidden = false;
+  heroFallback.hidden = true;
+  heroPhoto.src = src;
+}
+
+function loadSavedPhoto() {
+  const saved = localStorage.getItem('denanHeroPhoto');
+  if (saved) showHeroImage(saved);
+}
+
+function attachPhotoPicker() {
+  heroPhoto.addEventListener('error', showHeroFallback);
+
+  photoInput.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      localStorage.setItem('denanHeroPhoto', dataUrl);
+      showHeroImage(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function init() {
   attachPointerEvents();
   attachControls();
+  attachPhotoPicker();
+  loadSavedPhoto();
   configureBrush();
   refreshChallenge();
 }

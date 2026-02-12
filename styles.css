@@ -186,3 +186,36 @@ canvas {
   .app { margin: 0.2rem; }
   .panel { border-radius: 12px; }
 }
+
+
+.hero-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.2rem;
+  color: #37598f;
+  background: linear-gradient(135deg, #dcecff, #f3f8ff);
+}
+
+.hero-photo-wrap {
+  position: relative;
+}
+
+.photo-upload {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #c8daf5;
+  border-radius: 8px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.78rem;
+  color: #2d4d80;
+  cursor: pointer;
+}
+
+.hero-info h1 {
+  line-height: 1.15;
+}

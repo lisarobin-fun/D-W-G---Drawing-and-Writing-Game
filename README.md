@@ -25,9 +25,11 @@ Use this exact flow:
 > This avoids local file security issues that can happen when double-clicking `index.html` directly.
 
 ## Add Denan's photo to the hero banner
-1. Place your photo file in the project root.
-2. Name it exactly: `denan-banner.jpg`
-3. Relaunch the game.
+Two easy options:
+1. **In-game upload (recommended):** click **Use your photo** on the banner and choose the picture.
+2. **File method:** place your photo in the project root and name it `denan-banner.jpg`.
+
+The chosen image is saved in the browser so it appears next time too.
 
 ## Run locally
 ```bash
