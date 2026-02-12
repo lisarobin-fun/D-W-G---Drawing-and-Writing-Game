@@ -4,13 +4,14 @@ const drawCtx = drawCanvas.getContext('2d');
 const guideCtx = guideCanvas.getContext('2d');
 
 const modeSelect = document.getElementById('mode');
-const letterPick = document.getElementById('letterPick');
-const letterWrap = document.getElementById('letterWrap');
 const brushInput = document.getElementById('brush');
 const clearBtn = document.getElementById('clearBtn');
 const nextBtn = document.getElementById('nextBtn');
 const hint = document.getElementById('hint');
 const stars = document.getElementById('stars');
+
+const SHAPES = ['circle', 'triangle', 'square', 'heart', 'star'];
+const STORY_WORDS = ['Dragon', 'moon', 'Rocket', 'forest', 'Treasure', 'castle', 'Wizard', 'river', 'Pirate', 'planet'];
 
 let state = {
   drawing: false,
@@ -19,9 +20,8 @@ let state = {
   points: [],
   score: 0,
   challenge: null,
+  guidePixels: null,
 };
-
-const SHAPES = ['circle', 'triangle', 'square', 'heart', 'star'];
 
 function resetDrawLayer() {
   drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
@@ -30,6 +30,7 @@ function resetDrawLayer() {
 
 function clearGuide() {
   guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+  state.guidePixels = null;
 }
 
 function configureBrush() {
@@ -51,11 +52,34 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function randomItem(items) {
+  return items[randomInt(0, items.length - 1)];
+}
+
+function mixedCaseWord(word) {
+  return word
+    .split('')
+    .map((ch) => (Math.random() > 0.5 ? ch.toUpperCase() : ch.toLowerCase()))
+    .join('');
+}
+
+function cacheGuidePixels() {
+  const data = guideCtx.getImageData(0, 0, guideCanvas.width, guideCanvas.height).data;
+  const pixels = [];
+  for (let y = 0; y < guideCanvas.height; y += 3) {
+    for (let x = 0; x < guideCanvas.width; x += 3) {
+      const idx = (y * guideCanvas.width + x) * 4;
+      if (data[idx + 3] > 20) pixels.push({ x, y });
+    }
+  }
+  state.guidePixels = pixels;
+}
+
 function drawTraceGuide() {
   clearGuide();
   guideCtx.strokeStyle = '#99b8e6';
-  guideCtx.lineWidth = 18;
-  guideCtx.setLineDash([16, 12]);
+  guideCtx.lineWidth = 16;
+  guideCtx.setLineDash([15, 10]);
   guideCtx.beginPath();
 
   const nodes = Array.from({ length: 6 }, (_, i) => ({
@@ -68,21 +92,22 @@ function drawTraceGuide() {
   guideCtx.stroke();
   guideCtx.setLineDash([]);
 
-  state.challenge = { type: 'trace', nodes };
-  hint.textContent = 'Follow the dotted road from left to right. Keep your line steady!';
+  state.challenge = { type: 'trace' };
+  hint.textContent = 'Trace right on top of the dotted road for best accuracy.';
+  cacheGuidePixels();
 }
 
 function drawShapeGuide() {
   clearGuide();
-  const shape = SHAPES[randomInt(0, SHAPES.length - 1)];
+  const shape = randomItem(SHAPES);
 
   guideCtx.strokeStyle = '#8bb0e4';
-  guideCtx.lineWidth = 10;
+  guideCtx.lineWidth = 8;
   guideCtx.setLineDash([10, 8]);
   guideCtx.beginPath();
   const cx = 500;
   const cy = 310;
-  const size = 170;
+  const size = 160;
 
   if (shape === 'circle') {
     guideCtx.arc(cx, cy, size, 0, Math.PI * 2);
@@ -97,7 +122,7 @@ function drawShapeGuide() {
     guideCtx.moveTo(cx, cy + size * 0.65);
     guideCtx.bezierCurveTo(cx + size * 1.2, cy - size * 0.2, cx + size * 0.7, cy - size * 1.2, cx, cy - size * 0.5);
     guideCtx.bezierCurveTo(cx - size * 0.7, cy - size * 1.2, cx - size * 1.2, cy - size * 0.2, cx, cy + size * 0.65);
-  } else if (shape === 'star') {
+  } else {
     const spikes = 5;
     const outer = size;
     const inner = size * 0.45;
@@ -109,7 +134,6 @@ function drawShapeGuide() {
       guideCtx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner);
       rot += Math.PI / spikes;
     }
-    guideCtx.lineTo(cx, cy - outer);
     guideCtx.closePath();
   }
 
@@ -117,40 +141,49 @@ function drawShapeGuide() {
   guideCtx.setLineDash([]);
 
   state.challenge = { type: 'shape', shape };
-  hint.textContent = `Trace the ${shape} shape and decorate it.`;
+  hint.textContent = `Trace the ${shape} shape carefully.`;
+  cacheGuidePixels();
 }
 
-function drawLetterGuide() {
+function drawWordGuide() {
   clearGuide();
-  const letter = letterPick.value.toUpperCase();
+  const word = mixedCaseWord(randomItem(STORY_WORDS));
+  const setting = randomItem(['in the forest', 'on the moon', 'by the castle', 'near the river']);
 
-  guideCtx.font = 'bold 390px Nunito, sans-serif';
+  guideCtx.strokeStyle = '#8aaee0';
+  guideCtx.lineWidth = 4;
+  guideCtx.setLineDash([6, 5]);
+  guideCtx.font = 'italic 120px "Comic Sans MS", "Segoe Script", cursive';
   guideCtx.textAlign = 'center';
   guideCtx.textBaseline = 'middle';
-  guideCtx.strokeStyle = '#8aaee0';
-  guideCtx.lineWidth = 8;
-  guideCtx.setLineDash([12, 10]);
-  guideCtx.strokeText(letter, 500, 330);
+  guideCtx.strokeText(word, 500, 340);
   guideCtx.setLineDash([]);
 
-  state.challenge = { type: 'letters', letter };
-  hint.textContent = `Write the letter ${letter}. Say the letter sound out loud for bonus fun!`;
+  guideCtx.strokeStyle = '#cad9ef';
+  guideCtx.lineWidth = 2;
+  guideCtx.beginPath();
+  guideCtx.moveTo(170, 390);
+  guideCtx.lineTo(830, 390);
+  guideCtx.stroke();
+
+  state.challenge = { type: 'words', word };
+  hint.textContent = `Story word: "${word}" ${setting}. Trace right on the guide letters.`;
+  cacheGuidePixels();
 }
 
 function drawFreeGuide() {
   clearGuide();
   state.challenge = { type: 'free' };
-  hint.textContent = 'Free Draw: Make a tiny story picture (character + place + action)!';
+  hint.textContent = 'Free Draw: Draw a hero, a place, and one action!';
 }
 
 function refreshChallenge() {
   resetDrawLayer();
   const mode = modeSelect.value;
-  letterWrap.style.display = mode === 'letters' ? 'grid' : 'none';
 
   if (mode === 'trace') drawTraceGuide();
   if (mode === 'shape') drawShapeGuide();
-  if (mode === 'letters') drawLetterGuide();
+  if (mode === 'words') drawWordGuide();
   if (mode === 'free') drawFreeGuide();
 }
 
@@ -184,9 +217,66 @@ function addStars(n) {
   stars.textContent = state.score;
 }
 
+function distanceSq(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+function computeAccuracy() {
+  if (!state.guidePixels || state.points.length < 25) return 0;
+
+  const nearRadiusSq = 34 * 34;
+  let onGuideCount = 0;
+  for (const p of state.points) {
+    let close = false;
+    for (let i = 0; i < state.guidePixels.length; i += 5) {
+      if (distanceSq(p, state.guidePixels[i]) <= nearRadiusSq) {
+        close = true;
+        break;
+      }
+    }
+    if (close) onGuideCount += 1;
+  }
+
+  const pointAccuracy = onGuideCount / state.points.length;
+
+  let covered = 0;
+  for (let i = 0; i < state.guidePixels.length; i += 10) {
+    const gp = state.guidePixels[i];
+    let hit = false;
+    for (let j = 0; j < state.points.length; j += 4) {
+      if (distanceSq(gp, state.points[j]) <= nearRadiusSq) {
+        hit = true;
+        break;
+      }
+    }
+    if (hit) covered += 1;
+  }
+
+  const coverage = covered / Math.max(1, Math.ceil(state.guidePixels.length / 10));
+  return Math.max(0, Math.min(1, pointAccuracy * 0.65 + coverage * 0.35));
+}
+
+function gradeByAccuracy(activityName) {
+  const accuracy = computeAccuracy();
+
+  if (accuracy >= 0.78) {
+    addStars(3);
+    hint.textContent = `${activityName}: Awesome accuracy (${Math.round(accuracy * 100)}%) +3 stars 🌟`;
+  } else if (accuracy >= 0.55) {
+    addStars(2);
+    hint.textContent = `${activityName}: Good control (${Math.round(accuracy * 100)}%) +2 stars 🌟`;
+  } else if (accuracy >= 0.35) {
+    addStars(1);
+    hint.textContent = `${activityName}: Nice effort (${Math.round(accuracy * 100)}%) +1 star 🌟`;
+  } else {
+    hint.textContent = `${activityName}: Try tracing closer to the guide. Accuracy ${Math.round(accuracy * 100)}%.`;
+  }
+}
+
 function checkProgress() {
-  const count = state.points.length;
-  if (count < 30) return;
+  if (state.points.length < 30) return;
 
   if (state.challenge.type === 'free') {
     addStars(1);
@@ -194,24 +284,18 @@ function checkProgress() {
     return;
   }
 
-  if (state.challenge.type === 'letters') {
-    addStars(2);
-    hint.textContent = `Nice writing! +2 stars 🌟 Keep practicing ${state.challenge.letter}.`;
+  if (state.challenge.type === 'trace') {
+    gradeByAccuracy('Trace Path');
     return;
   }
 
   if (state.challenge.type === 'shape') {
-    addStars(2);
-    hint.textContent = `Awesome shape control! +2 stars 🌟`;
+    gradeByAccuracy(`Shape ${state.challenge.shape}`);
     return;
   }
 
-  if (state.challenge.type === 'trace') {
-    const pathSpread = Math.max(...state.points.map((p) => p.x)) - Math.min(...state.points.map((p) => p.x));
-    if (pathSpread > 620) {
-      addStars(3);
-      hint.textContent = 'Excellent tracing from start to finish! +3 stars 🌟';
-    }
+  if (state.challenge.type === 'words') {
+    gradeByAccuracy(`Story word "${state.challenge.word}"`);
   }
 }
 
@@ -239,9 +323,6 @@ function attachControls() {
   clearBtn.addEventListener('click', resetDrawLayer);
   nextBtn.addEventListener('click', refreshChallenge);
   modeSelect.addEventListener('change', refreshChallenge);
-  letterPick.addEventListener('change', () => {
-    if (modeSelect.value === 'letters') drawLetterGuide();
-  });
 }
 
 function init() {
