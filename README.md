@@ -24,6 +24,11 @@ Use this exact flow:
 
 > This avoids local file security issues that can happen when double-clicking `index.html` directly.
 
+## Add Denan's photo to the hero banner
+1. Place your photo file in the project root.
+2. Name it exactly: `denan-banner.jpg`
+3. Relaunch the game.
+
 ## Run locally
 ```bash
 npm start
@@ -35,3 +40,4 @@ Then open `http://localhost:3000`.
 - Smooth curved and angled strokes.
 - Mixed-case word tracing instead of only block letters.
 - Motivation via star rewards based on actual tracing accuracy.
+- Celebration cheer/clap sound when tracing is over 90% accuracy.

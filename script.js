@@ -11,7 +11,24 @@ const hint = document.getElementById('hint');
 const stars = document.getElementById('stars');
 
 const SHAPES = ['circle', 'triangle', 'square', 'heart', 'star'];
-const STORY_WORDS = ['Dragon', 'moon', 'Rocket', 'forest', 'Treasure', 'castle', 'Wizard', 'river', 'Pirate', 'planet'];
+const STORY_WORDS = [
+  'Dragon', 'moon', 'Rocket', 'forest', 'Treasure', 'castle', 'Wizard', 'river', 'Pirate', 'planet',
+  'comet', 'Map', 'Mermaid', 'dinosaur', 'volcano', 'Galaxy', 'jungle', 'Knight', 'Phoenix', 'adventure',
+  'cave', 'Lantern', 'island', 'Robot', 'rainbow', 'Meteor', 'Ninja', 'crystal', 'griffin', 'spaceship',
+  'magic', 'Quest', 'thunder', 'tornado', 'Captain', 'fossil', 'diamond', 'canyon', 'starlight', 'whisper',
+  'puzzle', 'Secret', 'campfire', 'waterfall', 'otter', 'owl', 'falcon', 'safari', 'horizon', 'marvel',
+  'harbor', 'legend', 'beacon', 'echo', 'voyage', 'courage', 'harvest', 'meadow', 'summit', 'wonder',
+];
+const STORY_SETTINGS = [
+  'in the whispering forest',
+  'on the moon bridge',
+  'under the crystal cave',
+  'beside the dragon river',
+  'behind the pirate waterfall',
+  'near the wizard tower',
+  'above the rainbow canyon',
+  'in the glowing jungle',
+];
 
 let state = {
   drawing: false,
@@ -21,6 +38,7 @@ let state = {
   score: 0,
   challenge: null,
   guidePixels: null,
+  audioCtx: null,
 };
 
 function resetDrawLayer() {
@@ -148,12 +166,12 @@ function drawShapeGuide() {
 function drawWordGuide() {
   clearGuide();
   const word = mixedCaseWord(randomItem(STORY_WORDS));
-  const setting = randomItem(['in the forest', 'on the moon', 'by the castle', 'near the river']);
+  const setting = randomItem(STORY_SETTINGS);
 
   guideCtx.strokeStyle = '#8aaee0';
   guideCtx.lineWidth = 4;
   guideCtx.setLineDash([6, 5]);
-  guideCtx.font = 'italic 120px "Comic Sans MS", "Segoe Script", cursive';
+  guideCtx.font = 'italic 118px "Comic Sans MS", "Segoe Script", cursive';
   guideCtx.textAlign = 'center';
   guideCtx.textBaseline = 'middle';
   guideCtx.strokeText(word, 500, 340);
@@ -258,10 +276,61 @@ function computeAccuracy() {
   return Math.max(0, Math.min(1, pointAccuracy * 0.65 + coverage * 0.35));
 }
 
+function getAudioCtx() {
+  if (!state.audioCtx) {
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return state.audioCtx;
+}
+
+function playCheerAndClap() {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, now + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + i * 0.12 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.12);
+    osc.stop(now + i * 0.12 + 0.2);
+  });
+
+  for (let i = 0; i < 10; i++) {
+    const bufferSize = 0.06 * ctx.sampleRate;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let j = 0; j < bufferSize; j++) output[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize / 4));
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800 + Math.random() * 1200;
+    const gain = ctx.createGain();
+    const t = now + 0.6 + i * 0.07;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.09, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    noise.connect(filter).connect(gain).connect(ctx.destination);
+    noise.start(t);
+    noise.stop(t + 0.08);
+  }
+}
+
 function gradeByAccuracy(activityName) {
   const accuracy = computeAccuracy();
 
-  if (accuracy >= 0.78) {
+  if (accuracy >= 0.9) {
+    addStars(4);
+    hint.textContent = `${activityName}: AMAZING! ${Math.round(accuracy * 100)}% +4 stars 🌟👏`;
+    playCheerAndClap();
+  } else if (accuracy >= 0.78) {
     addStars(3);
     hint.textContent = `${activityName}: Awesome accuracy (${Math.round(accuracy * 100)}%) +3 stars 🌟`;
   } else if (accuracy >= 0.55) {
