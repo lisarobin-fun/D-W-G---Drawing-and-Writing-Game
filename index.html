@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Denan's Stylus Adventure</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="panel header">
+      <div>
+        <h1>🎨 Denan's Stylus Adventure</h1>
+        <p>Trace, draw, and write to earn stars!</p>
+      </div>
+      <div class="score-wrap">
+        <span class="label">Stars</span>
+        <strong id="stars">0</strong>
+      </div>
+    </header>
+
+    <section class="panel controls">
+      <div class="control-group">
+        <label for="mode">Activity</label>
+        <select id="mode">
+          <option value="trace">Trace Path</option>
+          <option value="shape">Shape Builder</option>
+          <option value="letters">Letter Practice</option>
+          <option value="free">Free Draw</option>
+        </select>
+      </div>
+
+      <div class="control-group" id="letterWrap">
+        <label for="letterPick">Letter</label>
+        <select id="letterPick">
+          <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+          <option>F</option><option>G</option><option>H</option><option>I</option><option>J</option>
+          <option>K</option><option>L</option><option>M</option><option>N</option><option>O</option>
+          <option>P</option><option>Q</option><option>R</option><option>S</option><option>T</option>
+          <option>U</option><option>V</option><option>W</option><option>X</option><option>Y</option><option>Z</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="brush">Brush Size</label>
+        <input id="brush" type="range" min="3" max="20" step="1" value="8" />
+      </div>
+
+      <div class="control-group colors" aria-label="color picker">
+        <button class="swatch active" data-color="#4B7BEC" style="--c:#4B7BEC"></button>
+        <button class="swatch" data-color="#FC5C65" style="--c:#FC5C65"></button>
+        <button class="swatch" data-color="#F7B731" style="--c:#F7B731"></button>
+        <button class="swatch" data-color="#20BF6B" style="--c:#20BF6B"></button>
+        <button class="swatch" data-color="#8854D0" style="--c:#8854D0"></button>
+      </div>
+
+      <div class="control-group actions">
+        <button id="clearBtn">Clear</button>
+        <button id="nextBtn">New Challenge</button>
+      </div>
+    </section>
+
+    <section class="panel canvas-panel">
+      <p id="hint" class="hint"></p>
+      <div class="canvas-wrap">
+        <canvas id="guideCanvas" width="1000" height="620" aria-hidden="true"></canvas>
+        <canvas id="drawCanvas" width="1000" height="620" aria-label="drawing area"></canvas>
+      </div>
+      <p class="small">Tip: Use a stylus on touchscreen for best control. Finger works too!</p>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

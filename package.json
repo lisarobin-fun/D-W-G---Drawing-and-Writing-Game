@@ -1,0 +1,9 @@
+{
+  "name": "denans-stylus-adventure",
+  "version": "1.0.0",
+  "description": "Touch-first drawing and writing mini-game for fine motor practice.",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  }
+}
