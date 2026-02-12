@@ -31,6 +31,8 @@ Two easy options:
 
 The chosen image is saved in the browser so it appears next time too.
 
+If your picture is very large, it still loads immediately; if browser storage is full it may not persist after restart.
+
 ## Run locally
 ```bash
 npm start

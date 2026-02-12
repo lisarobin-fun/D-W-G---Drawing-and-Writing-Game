@@ -411,8 +411,12 @@ function showHeroImage(src) {
 }
 
 function loadSavedPhoto() {
-  const saved = localStorage.getItem('denanHeroPhoto');
-  if (saved) showHeroImage(saved);
+  try {
+    const saved = localStorage.getItem('denanHeroPhoto');
+    if (saved) showHeroImage(saved);
+  } catch (_) {
+    // ignore storage access issues
+  }
 }
 
 function attachPhotoPicker() {
@@ -421,13 +425,29 @@ function attachPhotoPicker() {
   photoInput.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = reader.result;
-      localStorage.setItem('denanHeroPhoto', dataUrl);
+      const dataUrl = String(reader.result || '');
+      if (!dataUrl) return;
+
+      // Always show the selected image immediately (even if storage quota is full).
       showHeroImage(dataUrl);
+
+      // Save for next launch when possible; large photos may exceed localStorage limits.
+      try {
+        localStorage.setItem('denanHeroPhoto', dataUrl);
+      } catch (_) {
+        hint.textContent = 'Photo loaded for this session. If it does not save, use a smaller image file.';
+      }
+    };
+    reader.onerror = () => {
+      hint.textContent = 'Could not read that image file. Please try another JPG/PNG.';
     };
     reader.readAsDataURL(file);
+
+    // Allow picking the same file again later.
+    photoInput.value = '';
   });
 }
 
