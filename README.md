@@ -9,6 +9,15 @@ A lightweight touch-first web game designed to help a 9-year-old practice fine m
 - **Free Draw**: creative prompt mode for storytelling doodles.
 
 ## Easiest way on Windows (no terminal typing)
+## ⚠️ Important: Do NOT run from inside the ZIP file
+If you open `index.html` while still browsing the `.zip` archive, the game may look broken (unstyled page, no canvas/game logic).
+
+Use this exact flow:
+1. Right-click the ZIP file and click **Extract All...**
+2. Open the extracted folder (not the ZIP view).
+3. Double-click `run-game.bat`.
+4. Keep the black terminal window open while playing.
+
 1. Open the project folder.
 2. Double-click `run-game.bat`.
 3. Your browser opens automatically at `http://localhost:3000`.
