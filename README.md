@@ -8,6 +8,13 @@ A lightweight touch-first web game designed to help a 9-year-old practice fine m
 - **Story Words**: trace themed mixed-case words in a single-line script style.
 - **Free Draw**: creative prompt mode for storytelling doodles.
 
+## Easiest way on Windows (no terminal typing)
+1. Open the project folder.
+2. Double-click `run-game.bat`.
+3. Your browser opens automatically at `http://localhost:3000`.
+
+> This avoids local file security issues that can happen when double-clicking `index.html` directly.
+
 ## Run locally
 ```bash
 npm start
